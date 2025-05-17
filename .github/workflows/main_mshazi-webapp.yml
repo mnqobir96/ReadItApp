@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy ASP.Net Core app to Azure Web App - mshazi-webapp
 
 on:
@@ -13,7 +10,7 @@ jobs:
   build:
     runs-on: windows-latest
     permissions:
-      contents: read #This is required for actions/checkout
+      contents: read
 
     steps:
       - uses: actions/checkout@v4
@@ -21,13 +18,16 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.x'
+          dotnet-version: '8.x'
+
+      - name: Restore dependencies
+        run: dotnet restore ./ReadItApp/ReadItApp.csproj
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build ./ReadItApp/ReadItApp.csproj --configuration Release --no-restore
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        run: dotnet publish ./ReadItApp/ReadItApp.csproj --configuration Release --output ${{env.DOTNET_ROOT}}/myapp --no-restore
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -42,21 +42,21 @@ jobs:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write #This is required for requesting the JWT
-      contents: read #This is required for actions/checkout
+      id-token: write
+      contents: read
 
     steps:
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: .net-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_FE878272B5524A5DAE2CB94124E2686D }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_1F1E694FB56541B1815A4A3551D8C5E4 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_8981A16238E049A7878803A1A35151CF }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_9850129188E14679B99300A9EB8B66E8 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_08CF0E8FCD414D9E8D5C5C512A75DFD9 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3F2DC9AFF4944E1B9A24EFC880EA48B7 }}
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
@@ -64,5 +64,6 @@ jobs:
         with:
           app-name: 'mshazi-webapp'
           slot-name: 'Production'
-          package: .
+          package: .  # Deploys the contents of the current directory (which is the artifact)
+
           
